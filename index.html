@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0">
+<meta name="theme-color" content="#1A1A2E">
+<title>The Constitution Test</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap');
+:root{
+  --navy:#1A1A2E; --blue:#3C3B6E; --red:#B22234;
+  --gold:#C9A84C; --cream:#FAF7F0; --ink:#1A1A2E;
+  --muted:#6B6B7B; --border:#E2DDD6;
+  --correct:#2D6A4F; --wrong:#A4161A;
+  --tap:52px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{font-size:16px;}
+body{font-family:'Source Serif 4',Georgia,serif;background:var(--cream);color:var(--ink);min-height:100vh;-webkit-text-size-adjust:100%;}
+
+header{background:var(--navy);padding:clamp(28px,5vw,48px) 20px clamp(22px,4vw,36px);text-align:center;position:relative;overflow:hidden;}
+header::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent,transparent 40px,rgba(255,255,255,.03) 40px,rgba(255,255,255,.03) 41px);}
+.flag-stripe{display:flex;height:6px;width:100%;position:absolute;top:0;left:0;}
+.flag-stripe span{flex:1;}
+.flag-stripe span:nth-child(odd){background:var(--red);}
+.flag-stripe span:nth-child(even){background:#fff;}
+.stars{color:var(--gold);font-size:clamp(.9rem,3vw,1.2rem);letter-spacing:clamp(3px,1.5vw,8px);margin-bottom:10px;position:relative;}
+header h1{font-family:'Playfair Display',serif;font-size:clamp(1.5rem,5vw,2.8rem);font-weight:900;color:#fff;margin-bottom:6px;position:relative;line-height:1.2;}
+header p{color:rgba(255,255,255,.75);font-size:clamp(.8rem,2.5vw,1rem);font-style:italic;position:relative;}
+
+.container{max-width:760px;margin:0 auto;padding:clamp(20px,4vw,40px) clamp(14px,4vw,24px) 80px;}
+
+/* ── Scoreboard ── */
+.scoreboard{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:24px;}
+.score-box{background:#fff;border-radius:8px;padding:14px 8px;text-align:center;box-shadow:0 2px 10px rgba(0,0,0,.06);border:1px solid var(--border);}
+.score-box .val{font-family:'Playfair Display',serif;font-size:clamp(1.4rem,4.5vw,2rem);font-weight:900;line-height:1;}
+.score-box .lbl{font-size:clamp(.58rem,1.8vw,.68rem);text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);margin-top:4px;}
+.score-box.correct .val{color:var(--correct);}
+.score-box.incorrect .val{color:var(--wrong);}
+.score-box.remaining .val{color:var(--blue);}
+.score-box.timer-box .val{font-size:clamp(1.1rem,3.5vw,1.6rem);color:var(--gold);}
+
+/* ── Progress track ── */
+.progress-track{display:flex;gap:3px;margin-bottom:22px;flex-wrap:wrap;}
+.pip{width:clamp(10px,2vw,16px);height:6px;border-radius:3px;background:#DDD9CF;transition:background .3s;flex-shrink:0;}
+.pip.correct{background:var(--correct);}
+.pip.incorrect{background:var(--wrong);}
+.pip.active{background:var(--blue);}
+
+/* ── Question card ── */
+.question-card{background:#fff;border-radius:10px;padding:clamp(20px,4vw,32px);box-shadow:0 2px 16px rgba(0,0,0,.07);border:1px solid var(--border);transition:opacity .25s;animation:slideIn .22s ease;}
+@keyframes slideIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+.q-source{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:2.5px;color:var(--gold);margin-bottom:6px;}
+.q-meta{font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:2px;color:var(--red);margin-bottom:10px;}
+.q-text{font-size:clamp(.95rem,3vw,1.1rem);font-weight:600;color:var(--ink);margin-bottom:20px;line-height:1.55;font-family:'Playfair Display',serif;}
+.options{display:flex;flex-direction:column;gap:10px;}
+.option-btn{
+  background:var(--cream);border:2px solid var(--border);border-radius:8px;
+  padding:0 16px;min-height:var(--tap);
+  text-align:left;cursor:pointer;
+  font-family:'Source Serif 4',serif;font-size:clamp(.87rem,2.7vw,.96rem);
+  color:var(--ink);transition:all .18s;
+  display:flex;align-items:center;gap:12px;
+  -webkit-tap-highlight-color:transparent;touch-action:manipulation;width:100%;
+}
+.option-btn:hover:not(:disabled){border-color:var(--blue);background:#fff;box-shadow:0 0 0 3px rgba(60,59,110,.1);}
+.option-btn:active:not(:disabled){transform:scale(.98);}
+.option-btn .letter{
+  min-width:28px;height:28px;border-radius:50%;
+  background:#fff;border:2px solid #CCC;
+  display:flex;align-items:center;justify-content:center;
+  font-size:.78rem;font-weight:700;flex-shrink:0;transition:all .18s;
+}
+.option-btn.selected{background:#EEEDF8;border-color:var(--blue);color:var(--blue);}
+.option-btn.selected .letter{background:var(--blue);border-color:var(--blue);color:#fff;}
+.option-btn.marked-wrong{background:#FFDAD6;border-color:var(--wrong);color:var(--wrong);}
+.option-btn.marked-wrong .letter{background:var(--wrong);border-color:var(--wrong);color:#fff;}
+.option-btn:disabled{cursor:default;opacity:.85;}
+
+/* ── Start screen ── */
+#start-screen{background:#fff;border-radius:10px;padding:clamp(24px,5vw,40px);box-shadow:0 2px 16px rgba(0,0,0,.07);border:1px solid var(--border);}
+#start-screen h2{font-family:'Playfair Display',serif;font-size:clamp(1.2rem,4vw,1.5rem);color:var(--blue);margin-bottom:14px;}
+#start-screen p{font-size:clamp(.88rem,2.8vw,.97rem);line-height:1.75;color:var(--muted);margin-bottom:10px;}
+.rules-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:10px;margin:18px 0;}
+.rule-box{background:var(--cream);border-radius:6px;padding:12px 14px;border:1px solid var(--border);}
+.rule-box strong{display:block;font-size:clamp(.63rem,2vw,.76rem);text-transform:uppercase;letter-spacing:1px;color:var(--blue);margin-bottom:3px;}
+.rule-box span{font-size:clamp(.88rem,2.8vw,.95rem);color:var(--ink);}
+.name-entry{margin:20px 0 0;}
+.name-entry label{display:block;font-size:.82rem;font-weight:600;text-transform:uppercase;letter-spacing:1.5px;color:var(--blue);margin-bottom:8px;}
+#taker-name{width:100%;padding:12px 16px;border-radius:8px;border:2px solid var(--border);background:var(--cream);font-family:'Source Serif 4',serif;font-size:1rem;color:var(--ink);outline:none;transition:border .2s;}
+#taker-name:focus{border-color:var(--blue);}
+#start-btn{
+  display:block;margin:24px auto 0;background:var(--blue);color:#fff;border:none;
+  min-height:var(--tap);padding:0 clamp(32px,8vw,56px);
+  font-family:'Playfair Display',serif;font-size:clamp(.95rem,3vw,1.1rem);font-weight:700;
+  border-radius:8px;cursor:pointer;transition:background .2s,transform .15s;
+  box-shadow:0 4px 14px rgba(60,59,110,.3);touch-action:manipulation;
+}
+#start-btn:hover{background:#2d2c5c;transform:translateY(-1px);}
+
+/* ── Results ── */
+#results-screen{display:none;}
+#results-screen.show{display:block;}
+.result-hero{background:#fff;border-radius:10px;padding:clamp(28px,5vw,48px) clamp(20px,5vw,36px) clamp(24px,4vw,36px);text-align:center;box-shadow:0 2px 16px rgba(0,0,0,.07);border:1px solid var(--border);margin-bottom:20px;}
+.result-score-wrap{display:flex;align-items:center;justify-content:center;gap:clamp(16px,4vw,32px);margin-bottom:24px;flex-wrap:wrap;}
+.result-circle{width:clamp(90px,18vw,120px);height:clamp(90px,18vw,120px);border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;border:7px solid var(--blue);flex-shrink:0;}
+.result-circle .num{font-family:'Playfair Display',serif;font-size:clamp(1.8rem,6vw,2.6rem);font-weight:900;color:var(--blue);line-height:1;}
+.result-circle .denom{font-size:clamp(.78rem,2.5vw,.9rem);color:var(--muted);}
+.result-stats{text-align:left;}
+.result-stats .stat{display:flex;align-items:center;gap:10px;margin-bottom:8px;font-size:clamp(.85rem,2.8vw,.97rem);}
+.result-stats .dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.result-title{font-family:'Playfair Display',serif;font-size:clamp(1.5rem,5vw,2rem);margin-bottom:10px;}
+.result-badge{display:inline-block;padding:7px 22px;border-radius:20px;font-weight:700;font-size:clamp(.72rem,2.5vw,.84rem);letter-spacing:1px;text-transform:uppercase;margin-bottom:14px;}
+.badge-pass{background:#D8F3DC;color:var(--correct);}
+.badge-fail{background:#FFDAD6;color:var(--wrong);}
+.result-meta{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin:10px 0 18px;}
+.result-meta-item{background:var(--cream);border:1px solid var(--border);border-radius:8px;padding:10px 20px;text-align:center;min-width:100px;}
+.result-meta-item .m-val{font-family:'Playfair Display',serif;font-size:1.25rem;font-weight:700;color:var(--blue);}
+.result-meta-item .m-lbl{font-size:.68rem;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);margin-top:2px;}
+.result-msg{color:var(--muted);font-size:clamp(.85rem,2.8vw,.97rem);line-height:1.75;max-width:500px;margin:0 auto;}
+
+/* ── Review section ── */
+.review-section{background:#fff;border-radius:10px;padding:clamp(20px,4vw,28px) clamp(18px,4vw,32px);box-shadow:0 2px 16px rgba(0,0,0,.07);border:1px solid var(--border);}
+.review-section h3{font-family:'Playfair Display',serif;font-size:clamp(1rem,3.5vw,1.2rem);color:var(--wrong);margin-bottom:14px;padding-bottom:10px;border-bottom:2px solid #FFDAD6;}
+.review-item{padding:12px 0;border-bottom:1px solid var(--border);}
+.review-item:last-child{border-bottom:none;}
+.review-src{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:var(--gold);margin-bottom:3px;}
+.review-q{font-size:clamp(.85rem,2.8vw,.93rem);font-weight:600;color:var(--ink);margin-bottom:4px;}
+.review-chosen{font-size:clamp(.8rem,2.5vw,.87rem);color:var(--wrong);}
+.review-chosen::before{content:"Your answer: ";font-weight:600;}
+
+/* ── Retake button ── */
+.result-actions{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:clamp(20px,4vw,28px);}
+#retake-btn{
+  background:transparent;color:var(--blue);border:2px solid var(--blue);
+  min-height:var(--tap);padding:0 clamp(22px,5vw,36px);
+  font-family:'Playfair Display',serif;font-size:clamp(.88rem,2.8vw,1rem);font-weight:700;
+  border-radius:8px;cursor:pointer;transition:all .2s;touch-action:manipulation;
+  display:inline-flex;align-items:center;
+}
+#retake-btn:hover{background:var(--blue);color:#fff;}
+
+footer{text-align:center;padding:clamp(16px,4vw,24px) 20px;color:var(--muted);font-size:clamp(.72rem,2.2vw,.82rem);font-style:italic;border-top:1px solid var(--border);margin-top:clamp(32px,6vw,60px);}
+footer a{color:var(--blue);}
+@media(max-width:480px){.result-score-wrap{flex-direction:column;}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="flag-stripe"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+  <div class="stars">★ ★ ★ ★ ★</div>
+  <h1>The Constitution Test</h1>
+  <p>How well do you know the supreme law of the land?</p>
+</header>
+
+<div class="container">
+
+  <div id="start-screen">
+    <h2>Know the Document, Not Just the Myth</h2>
+    <p>The Citizen Test covers the USCIS civics bank. <strong>The Constitution Test</strong> goes to the source — the actual text of the U.S. Constitution, all seven Articles and all twenty-seven Amendments, sourced directly from Congress.gov.</p>
+    <p>Every question is drawn from the enrolled constitutional text. No paraphrasing. No summaries. If you know the document, you pass.</p>
+    <div class="rules-grid">
+      <div class="rule-box"><strong>Questions per session</strong><span>75 in bank, 40 drawn</span></div>
+      <div class="rule-box"><strong>Pass threshold</strong><span>34 correct</span></div>
+      <div class="rule-box"><strong>Fail threshold</strong><span>5 incorrect</span></div>
+      <div class="rule-box"><strong>Answer order</strong><span>Randomized every question</span></div>
+      <div class="rule-box"><strong>Stops early?</strong><span>Yes — on pass or fail</span></div>
+      <div class="rule-box"><strong>Source</strong><span>Congress.gov enrolled text</span></div>
+    </div>
+    <div class="name-entry">
+      <label for="taker-name">Your Name <span style="font-weight:400;font-size:.75rem;color:var(--muted);text-transform:none;letter-spacing:0">(optional)</span></label>
+      <input type="text" id="taker-name" placeholder="Enter your name" maxlength="40" autocomplete="off" spellcheck="false" onkeydown="if(event.key==='Enter')startQuiz()" />
+    </div>
+    <button id="start-btn" onclick="startQuiz()">Begin Test</button>
+  </div>
+
+  <div id="quiz-screen" style="display:none;">
+    <div class="scoreboard">
+      <div class="score-box correct"><div class="val" id="score-correct">0</div><div class="lbl">Correct</div></div>
+      <div class="score-box incorrect"><div class="val" id="score-incorrect">0</div><div class="lbl">Incorrect</div></div>
+      <div class="score-box remaining"><div class="val" id="score-remaining">40</div><div class="lbl">Remaining</div></div>
+      <div class="score-box timer-box"><div class="val" id="score-timer">0:00</div><div class="lbl">Time</div></div>
+    </div>
+    <div class="progress-track" id="progress-track"></div>
+    <div class="question-card" id="question-card">
+      <div class="q-source" id="q-source"></div>
+      <div class="q-meta" id="q-meta"></div>
+      <div class="q-text" id="q-text"></div>
+      <div class="options" id="options"></div>
+    </div>
+  </div>
+
+  <div id="results-screen">
+    <div class="result-hero">
+      <div class="result-score-wrap">
+        <div class="result-circle">
+          <div class="num" id="res-num">0</div>
+          <div class="denom">out of <span id="res-denom">0</span></div>
+        </div>
+        <div class="result-stats">
+          <div class="stat"><span class="dot" style="background:var(--correct)"></span><span id="res-correct-stat"></span></div>
+          <div class="stat"><span class="dot" style="background:var(--wrong)"></span><span id="res-wrong-stat"></span></div>
+          <div class="stat"><span class="dot" style="background:#CCC"></span><span id="res-skipped-stat"></span></div>
+        </div>
+      </div>
+      <div class="result-title" id="res-title"></div>
+      <div class="result-badge" id="res-badge"></div>
+      <div class="result-meta" id="res-meta"></div>
+      <p class="result-msg" id="res-msg"></p>
+    </div>
+    <div class="review-section" id="review-section" style="display:none;">
+      <h3>Questions to Review</h3>
+      <div id="review-list"></div>
+    </div>
+    <div class="result-actions">
+      <button id="retake-btn" onclick="retakeQuiz()">↩ Retake Test</button>
+    </div>
+  </div>
+</div>
+
+<footer>
+  All questions sourced from the enrolled U.S. Constitution at <a href="https://constitution.congress.gov" target="_blank">constitution.congress.gov</a>. Answers protected — not visible in page source.
+</footer>
+
+<script>
+(function(){
+const _K="ConstitutionOfTheUnitedStates1787";
+const BANK=[{"src":"Art. I §1","q":"All legislative powers granted by the Constitution are vested in which body?","opts":["The President","The Supreme Court","Congress of the United States","The Cabinet"],"c":"AAAAFAYMBwZUBglOOw4xSDA7Bx0RAUQAAAAAAAA="},{"src":"Art. I §2","q":"How often are members of the House of Representatives elected?","opts":["Every year","Every two years","Every four years","Every six years"],"c":"BhkLAQ1JAAIbSRYLLhQn"},{"src":"Art. I §2","q":"What is the minimum age to serve as a U.S. Representative?","opts":["21 years","25 years","30 years","35 years"],"c":"cVpOChEIBgY="},{"src":"Art. I §2","q":"How many years must a person be a U.S. citizen before serving as a Representative?","opts":["Five years","Seven years","Nine years","Fourteen years"],"c":"EAoYFhpJDRAVGxw="},{"src":"Art. I §2","q":"Which chamber of Congress has the sole power of impeachment?","opts":["The Senate","The Supreme Court","The House of Representatives","The Cabinet"],"c":"FwcLUzwGAQYRSQAIbzQxGBcwHQwaEQUnHRcRFg=="},{"src":"Art. I §3","q":"How many senators does each state have?","opts":["One","Two","Three","Varies by population"],"c":"FxgB"},{"src":"Art. I §3","q":"How long is a U.S. senator's term?","opts":["Two years","Four years","Six years","Eight years"],"c":"EAYWUw0MFQcH"},{"src":"Art. I §3","q":"What is the minimum age to serve as a U.S. senator?","opts":["25 years","28 years","30 years","35 years"],"c":"cF9OChEIBgY="},{"src":"Art. I §3","q":"How many years must a person be a U.S. citizen before serving as a senator?","opts":["Five years","Seven years","Nine years","Fourteen years"],"c":"DQYAFlQQERQGGg=="},{"src":"Art. I §3","q":"Who serves as President of the Senate?","opts":["The Senate Majority Leader","The Speaker of the House","The Chief Justice","The Vice President of the United States"],"c":"FwcLUyIAFxBUOR0LPA8wDQshTgYSRRA7EUEhCxpFUlwXEBsPBxEa"},{"src":"Art. I §3","q":"Which body has the sole power to try all impeachments?","opts":["The House of Representatives","The Supreme Court","The Senate","The Attorney General"],"c":"FwcLUycMGhQADA=="},{"src":"Art. I §3","q":"What fraction of senators present must concur to convict on impeachment?","opts":["A simple majority","Three-fifths","Two-thirds","Three-fourths"],"c":"FxgBXgABHQcQGg=="},{"src":"Art. I §3","q":"Who presides when the President of the United States is tried on impeachment?","opts":["The Vice President","The Senate Majority Leader","The Chief Justice","The Speaker of the House"],"c":"FwcLUzcBHRASSSUbPBI9CwA="},{"src":"Art. I §3","q":"What is the maximum punishment the Senate can impose through an impeachment judgment?","opts":["Imprisonment and fines","Removal from office and disqualification from future office","Execution","Exile from the United States"],"c":"EQoDHAIIGFUSGwADbwkyDgw2C0kVCwBzEAgHFAZQW1FRKgwPBx0GGlUSGwADbwAhHBAnC0kbAwI6FwQ="},{"src":"Art. I §7","q":"All bills for raising revenue must originate in which chamber?","opts":["The Senate","The House of Representatives","The Treasury Department","Either chamber"],"c":"FwcLUzwGAQYRSQAIbzQxGBcwHQwaEQUnHRcRFg=="},{"src":"Art. I §7","q":"If the President does not return a bill within how many days (Sundays excepted), it becomes law?","opts":["Five days","Seven days","Ten days","Fifteen days"],"c":"FwoAUxAIDQY="},{"src":"Art. I §7","q":"What fraction of both Houses is required to override a presidential veto?","opts":["A simple majority","Three-fifths","Two-thirds","Three-fourths"],"c":"FxgBXgABHQcQGg=="},{"src":"Art. I §8","q":"The 'necessary and proper' clause gives Congress power to make all laws necessary to carry out which powers?","opts":["Only the powers of the President","Only the powers listed in Article III","The foregoing powers vested by the Constitution in the government","The powers reserved to the states"],"c":"FwcLUxIGBhATBgYAKEYkBxIwHBpUEwEgAAQQRRFIF0xfJk8tHBoaABwAHBsHIAh0AQt1GgERRQM8AgQGCx5UWUw="},{"src":"Art. I §9","q":"The Writ of Habeas Corpus may be suspended only in cases of what?","opts":["War declared by Congress","A presidential emergency declaration","Rebellion or invasion when public safety requires it","A Supreme Court order"],"c":"EQoMFhgFHRoaSQAcbw86HgQmBwYaRRM7EQ9UFQZTW1FUYxwPFREdDVUGDB4bJhQxG0U8Gg=="},{"src":"Art. I §9","q":"Which of the following is prohibited by Article I, Section 9?","opts":["Declaring war","Granting titles of nobility","Appointing ambassadors","Regulating commerce"],"c":"BB0PHQAAGhJUHQYaIwMnSAozTgcbBw0/HRUN"},{"src":"Art. II §1","q":"How long is a presidential term under the Constitution?","opts":["Two years","Four years","Six years","Eight years"],"c":"BQAbAVQQERQGGg=="},{"src":"Art. II §1","q":"What is the minimum age to be eligible for the presidency?","opts":["25 years","30 years","35 years","40 years"],"c":"cFpOChEIBgY="},{"src":"Art. II §1","q":"How many years must a presidential candidate have been a resident of the United States?","opts":["Seven years","Ten years","Fourteen years","Twenty years"],"c":"BQAbAQAMERtUEAoPPRU="},{"src":"Art. II §1","q":"What must a person be in order to be eligible for the presidency?","opts":["A college graduate","A natural born citizen","A former member of Congress","A military veteran"],"c":"Ak8AEgAcBhQYSQ0BPQh0CwwhBxMRCw=="},{"src":"Art. II §1","q":"The President takes an oath to 'preserve, protect and defend' what?","opts":["The American people","The laws of Congress","The Constitution of the United States","The sovereignty of the states"],"c":"FwcLUzcGGgYAABsbOw87BkU6CEkADQFzIQ8dERZVF2tDIhsLAA=="},{"src":"Art. II §2","q":"Who is Commander in Chief of the Army and Navy under the Constitution?","opts":["The Secretary of Defense","The Chairman of the Joint Chiefs","The Senate Majority Leader","The President"],"c":"FwcLUyQbEQYdDQoAOw=="},{"src":"Art. II §2","q":"What fraction of senators present must concur for the President to ratify a treaty?","opts":["A simple majority","Three-fifths","Two-thirds","Three-fourths"],"c":"FxgBXgABHQcQGg=="},{"src":"Art. II §2","q":"The President nominates Judges of the Supreme Court with the advice and consent of which body?","opts":["The House of Representatives","The Cabinet","The Senate","The Attorney General"],"c":"FwcLUycMGhQADA=="},{"src":"Art. II §4","q":"The President may be removed from office on impeachment for treason, bribery, or what else?","opts":["Failure to pass legislation","Unpopular foreign policy decisions","Other high crimes and misdemeanors","Losing a re-election campaign"],"c":"DBsGFgZJHBwTAU8NPQ85DRZ1DwcQRQk6BwURCBZQWVdFMA=="},{"src":"Art. III §1","q":"Federal judges hold their offices during what condition?","opts":["A fixed ten-year term","Good behaviour","The pleasure of the President","A renewable six-year term"],"c":"BAABF1QLER0VHwYBOhQ="},{"src":"Art. III §1","q":"The judicial power of the United States is vested in which court at the top?","opts":["The Court of Appeals","The District Court","One supreme Court","The Court of International Trade"],"c":"DAELUwccBAcRBApODAkhGhE="},{"src":"Art. III §2","q":"The trial of all crimes (except impeachment) shall be by what?","opts":["A panel of judges","Jury","Congressional vote","Presidential decree"],"c":"CRocCg=="},{"src":"Art. III §3","q":"Treason against the United States consists only in levying war against them or what else?","opts":["Refusing to pay taxes","Criticizing the government","Adhering to their enemies, giving them aid and comfort","Fleeing the country during wartime"],"c":"AgsGFgYAGhJUHQBOOw4xARd1CwcRCA02B01UAhpHXlZQYxsGFhlJFRwQSQ4AK0Y3BwgzARsA"},{"src":"Art. III §3","q":"No person shall be convicted of treason unless on the testimony of how many witnesses to the same overt act?","opts":["One","Two","Three","Five"],"c":"FxgB"},{"src":"Art. IV §4","q":"The United States guarantees to every state which form of government?","opts":["A democratic government","A parliamentary government","A Republican Form of Government","A constitutional monarchy"],"c":"Ak88FgQcFhkdCg4AbyA7Ggh1AQ9UIgslERMaCBZfQw=="},{"src":"Art. V","q":"What fraction of both Houses of Congress is needed to propose an amendment to the Constitution?","opts":["A simple majority","Three-fifths","Two-thirds","Three-fourths"],"c":"FxgBXgABHQcQGg=="},{"src":"Art. V","q":"What fraction of the states must ratify a constitutional amendment for it to become valid?","opts":["A simple majority","Two-thirds","Three-fourths","All states"],"c":"FwccFhFEEhoBGxsGPA=="},{"src":"Art. VI","q":"Under the Supremacy Clause, the Constitution and laws made under it are the supreme law of what?","opts":["The federal government","Congress","The land","The executive branch"],"c":"FwcLUxgIGhE="},{"src":"Art. VI","q":"Article VI prohibits what as a qualification for any office or public trust under the United States?","opts":["A literacy test","A religious test","A property requirement","A political party affiliation"],"c":"Ak8cFhgAExwbHBxOOwMnHA=="},{"src":"1st Amend.","q":"The First Amendment prohibits Congress from abridging which of the following?","opts":["The right to a jury trial","Freedom of speech, or of the press","The right to bear arms","Protection against unreasonable searches"],"c":"BR0LFhAGGVUbD08dPwMxCw15TgYGRQs1VBUcAFNBRV1EMA=="},{"src":"1st Amend.","q":"The First Amendment protects the right of the people to do what regarding the government?","opts":["To ignore unjust laws","To vote out officials at any time","To petition the Government for a redress of grievances","To veto legislation by popular vote"],"c":"FwBOAxEdHQEdBgFOOw4xSCI6GAwGCwk2GhVUAxxDF1kXMQoKAREaB1UbD08JPQ8xHgQ7DQwH"},{"src":"2nd Amend.","q":"The Second Amendment states that the right to keep and bear arms shall not be what?","opts":["Regulated","Taxed","Infringed","Restricted to militias"],"c":"CgEIAR0HExAQ"},{"src":"3rd Amend.","q":"The Third Amendment prohibits the quartering of soldiers in private homes without the owner's consent during what period?","opts":["Wartime","Time of peace","A national emergency","A declared invasion"],"c":"FwYDFlQGElUEDA4NKg=="},{"src":"4th Amend.","q":"The Fourth Amendment requires that warrants be issued only upon what?","opts":["A majority vote of Congress","The President's authorization","Probable cause, supported by oath or affirmation","A court order from the Supreme Court"],"c":"Ex0BERULGBBUCg4bPAN4SBYgHhkbFxA2EEEWHFNeVkxfYwAcUxUPEhwGBA4aJgk6"},{"src":"5th Amend.","q":"The Fifth Amendment protects against being tried twice for the same offense. What is this called?","opts":["Due process","Habeas corpus","Double jeopardy","Self-incrimination"],"c":"BwAbERgMVB8RBh8PPQIt"},{"src":"5th Amend.","q":"Under the Fifth Amendment, private property shall not be taken for public use without what?","opts":["A congressional vote","Just compensation","The owner's consent","A Supreme Court ruling"],"c":"CRodB1QKGxgEDAEdLhI9Bws="},{"src":"5th Amend.","q":"The Fifth Amendment states that no person shall be compelled in any criminal case to be what?","opts":["Represented by an attorney","Tried by jury","A witness against himself","Present at trial"],"c":"Ak8ZGgAHEQYHSQ4JLg86GxF1BgAZFgE/Eg=="},{"src":"6th Amend.","q":"The Sixth Amendment guarantees the accused the right to a trial that is both speedy and what?","opts":["Televised","Decided by a judge","Public","Held in Washington, D.C."],"c":"ExoMHx0K"},{"src":"6th Amend.","q":"The Sixth Amendment guarantees the accused the right to have the assistance of what for their defence?","opts":["A government advocate","The Speaker of the House","Counsel","A military officer"],"c":"AAAbHQcMGA=="},{"src":"7th Amend.","q":"The Seventh Amendment preserves the right of trial by jury in suits at common law where the value in controversy exceeds how much?","opts":["Ten dollars","Twenty dollars","One hundred dollars","One thousand dollars"],"c":"FxgLHQAQVBEbBQMPPRU="},{"src":"8th Amend.","q":"The Eighth Amendment prohibits which of the following?","opts":["Long prison sentences","Cruel and unusual punishments","Fines over one thousand dollars","Imprisonment without trial"],"c":"AB0bFhhJFRsQSRoAOhUhCQl1HhwaDBc7GQQaEQA="},{"src":"9th Amend.","q":"The Ninth Amendment states that the enumeration of certain rights in the Constitution shall not be construed to do what?","opts":["Expand the powers of the federal government","Replace state laws","Deny or disparage other rights retained by the people","Eliminate the Bill of Rights"],"c":"BwoAClQGBlUQABweLhQ1DwB1AR0cABZzBggTDQdCF0pSNw4HHRENVBcNSRsGKkYkDQolAgw="},{"src":"10th Amend.","q":"The Tenth Amendment reserves powers not delegated to the federal government to whom?","opts":["The President","The Supreme Court","Congress","The States respectively, or to the people"],"c":"FwcLUycdFQERGk8cKhUkDQYhBx8RCR1/VA4GRQdeF0xfJk8eFhsZGBA="},{"src":"11th Amend.","q":"The Eleventh Amendment limits the judicial power of the United States by preventing suits against a state by whom?","opts":["Its own citizens only","Other states","Citizens of another state or foreign subjects","The federal government"],"c":"AAYaGg4MGgZUBglOLgg7HA0wHEkHEQUnEUEbF1NXWEpSKggAUwccFh8RChsd"},{"src":"12th Amend.","q":"Under the Twelfth Amendment, electors cast their ballots for President and Vice President on how many separate ballots?","opts":["One combined ballot","Two distinct ballots","Three ballots","One per state"],"c":"FxgBUxAABwEdBwwabwQ1BAk6Gho="},{"src":"13th Amend.","q":"The Thirteenth Amendment abolished what within the United States?","opts":["Child labor","Poll taxes","Slavery and involuntary servitude","Cruel and unusual punishment"],"c":"EAMPBREbDVUVBwtOJggiBwkgAB0VFx1zBwQGExpFQlxS"},{"src":"14th Amend.","q":"The Fourteenth Amendment grants citizenship to all persons born or naturalized in the United States and guarantees what to every person?","opts":["The right to vote","Free public education","Equal protection of the laws","The right to bear arms"],"c":"Bh4bEhhJBAcbHQoNOw87BkU6CEkADQFzGAADFg=="},{"src":"14th Amend.","q":"The Fourteenth Amendment prohibits any state from depriving any person of life, liberty, or property without what?","opts":["A congressional vote","Due process of law","A Supreme Court ruling","The President's approval"],"c":"BxoLUwQbGxYRGhxOIAB0BAQi"},{"src":"15th Amend.","q":"The Fifteenth Amendment prohibits denying citizens the right to vote on account of what?","opts":["Age","Sex","Race, color, or previous condition of servitude","Property ownership"],"c":"EQ4NFlhJFxoYBh1CbwkmSBUnCx8dChEgVAIbCxdYQ1FYLU8BFVQaEQcCABsbKwM="},{"src":"16th Amend.","q":"The Sixteenth Amendment gave Congress the power to lay and collect taxes on what without apportionment among the states?","opts":["Property","Imports","Incomes","Exports"],"c":"CgENHBkMBw=="},{"src":"17th Amend.","q":"The Seventeenth Amendment changed how U.S. senators are selected. They are now elected by whom?","opts":["State legislatures","The Electoral College","The people of each state","The President with Senate consent"],"c":"FwcLUwQMGwUYDE8BKUYxCQY9ThoABBA2"},{"src":"18th Amend.","q":"The Eighteenth Amendment prohibited the manufacture, sale, or transportation of what?","opts":["Tobacco products","Firearms","Intoxicating liquors","Foreign goods"],"c":"CgEaHAwAFxQAAAEJbwo9GRA6HBo="},{"src":"19th Amend.","q":"The Nineteenth Amendment prohibits denying citizens the right to vote on account of what?","opts":["Age","Sex","Race","Income"],"c":"EAoW"},{"src":"20th Amend.","q":"Under the Twentieth Amendment, presidential terms end at noon on what day?","opts":["January 3rd","January 6th","January 20th","March 4th"],"c":"CQ4ABhUbDVVGWRsG"},{"src":"20th Amend.","q":"Under the Twentieth Amendment, if the President-elect dies before taking office, who becomes President?","opts":["The Speaker of the House","The Senate President pro tempore","The Secretary of State","The Vice President elect"],"c":"FwcLUyIAFxBUOR0LPA8wDQshTgwYAAcn"},{"src":"21st Amend.","q":"The Twenty-First Amendment repealed which other amendment?","opts":["The Fifteenth Amendment","The Sixteenth Amendment","The Seventeenth Amendment","The Eighteenth Amendment"],"c":"FwcLUzEAEx0ADAoAOw50KQgwAA0ZAAon"},{"src":"22nd Amend.","q":"The Twenty-Second Amendment limits the President to how many elected terms?","opts":["One term","Two terms","Three terms","No limit"],"c":"FxgBUwAMBhgH"},{"src":"22nd Amend.","q":"Under the Twenty-Second Amendment, a person who has served more than two years of another president's term may be elected President how many more times?","opts":["Two more times","One more time","Never again","As many times as voters choose"],"c":"DAELUxkGBhBUHQYDKg=="},{"src":"23rd Amend.","q":"The Twenty-Third Amendment grants electoral votes to which district that previously had none?","opts":["Puerto Rico","Guam","The District constituting the seat of Government","U.S. Virgin Islands"],"c":"FwcLUzAABwEGAAwabwU7BhYhBx0BEQ09E0EADRYRRF1WN08BFVQuGwMRGwEDKggg"},{"src":"24th Amend.","q":"The Twenty-Fourth Amendment prohibits denying the right to vote due to failure to pay what?","opts":["Income tax","Property tax","Poll tax or other tax","Federal fees"],"c":"EwACH1QdFQ1UBh1OIBI8DRd1GggM"},{"src":"25th Amend.","q":"Under the Twenty-Fifth Amendment, if the President is removed, dies, or resigns, who becomes President?","opts":["The Speaker of the House","The Secretary of State","The Senate President pro tempore","The Vice President"],"c":"FwcLUyIAFxBUOR0LPA8wDQsh"},{"src":"25th Amend.","q":"Under the Twenty-Fifth Amendment, Section 2, how is a vacancy in the office of Vice President filled?","opts":["By a special national election","By the President nominating a VP confirmed by a majority of both Houses of Congress","By the Speaker of the House automatically","By a vote of the Cabinet"],"c":"ARZOBxwMVCUGDBwHKwM6HEU7AQQdCwUnHQ8TRRIRYWgXIAAAFR0bGRAQSQ0Xbwd0BQQ/ARsdER1zGwdUBxxFXxh/LBodFgdJGxNUKgAAKBQxGxY="},{"src":"25th Amend.","q":"Under the Twenty-Fifth Amendment, Congress has how many days after receiving written declarations of presidential inability to determine if the President is unable to serve?","opts":["Seven days","Fourteen days","Twenty-one days","Thirty days"],"c":"FxgLHQAQWRoaDE8KLh8n"},{"src":"26th Amend.","q":"The Twenty-Sixth Amendment lowered the voting age to how old?","opts":["16","17","18","21"],"c":"clc="},{"src":"27th Amend.","q":"The Twenty-Seventh Amendment states that no law varying Congressional compensation shall take effect until what has occurred?","opts":["The President signs it","The Supreme Court approves it","An election of Representatives has intervened","Three-fourths of states ratify it"],"c":"AgFOFhgMFwEdBgFOIAB0OgAlHAwHAAonFRUdExZCF1BWME8HHQAMBgMRBwoK"}];
+const PASS=34,FAIL=5,SZ=40;
+const L=['A','B','C','D'];
+
+function _d(enc){
+  const k=_K,raw=atob(enc);
+  return Array.from(raw).map((c,i)=>String.fromCharCode(c.charCodeAt(0)^k.charCodeAt(i%k.length))).join('');
+}
+
+function shuffle(a){
+  for(let i=a.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+
+let session=[],idx=0,nCorrect=0,nWrong=0,results=[];
+let _cur='',_takerName='';
+let _startTime=0,_timerInterval=null,_elapsedSecs=0;
+
+function _fmt(s){const m=Math.floor(s/60),sc=s%60;return m+':'+(sc<10?'0':'')+sc;}
+
+function startQuiz(){
+  const inp=document.getElementById('taker-name');
+  _takerName=(inp&&inp.value.trim())?inp.value.trim():'Anonymous';
+  session=shuffle([...BANK]).slice(0,SZ);
+  idx=0;nCorrect=0;nWrong=0;results=[];_elapsedSecs=0;
+  document.getElementById('start-screen').style.display='none';
+  document.getElementById('quiz-screen').style.display='block';
+  _buildTrack();
+  _startTime=Date.now();
+  if(_timerInterval)clearInterval(_timerInterval);
+  _timerInterval=setInterval(()=>{
+    _elapsedSecs=Math.floor((Date.now()-_startTime)/1000);
+    const el=document.getElementById('score-timer');
+    if(el)el.textContent=_fmt(_elapsedSecs);
+  },500);
+  _render();
+}
+
+function _buildTrack(){
+  const t=document.getElementById('progress-track');
+  t.innerHTML='';
+  for(let i=0;i<SZ;i++){
+    const p=document.createElement('div');
+    p.className='pip'+(i===0?' active':'');
+    p.id='pip-'+i;
+    t.appendChild(p);
+  }
+}
+
+function _pip(i,status){
+  const p=document.getElementById('pip-'+i);
+  if(p)p.className='pip '+status;
+  const n=document.getElementById('pip-'+(i+1));
+  if(n)n.classList.add('active');
+}
+
+function _sb(){
+  document.getElementById('score-correct').textContent=nCorrect;
+  document.getElementById('score-incorrect').textContent=nWrong;
+  document.getElementById('score-remaining').textContent=Math.max(0,SZ-idx);
+}
+
+function _render(){
+  _sb();
+  if(idx>=session.length){_end();return;}
+  const q=session[idx];
+  _cur=_d(q.c);
+  const shuffled=shuffle([...q.opts]);
+  if(document.activeElement)document.activeElement.blur();
+  document.getElementById('q-source').textContent=q.src;
+  document.getElementById('q-meta').textContent='Question '+(idx+1)+' of '+SZ;
+  document.getElementById('q-text').textContent=q.q;
+  const opts=document.getElementById('options');
+  opts.innerHTML='';
+  shuffled.forEach((opt,oi)=>{
+    const btn=document.createElement('button');
+    btn.className='option-btn';
+    btn.innerHTML='<span class="letter">'+L[oi]+'</span>'+opt;
+    btn.addEventListener('click',()=>_select(btn,opt,q));
+    opts.appendChild(btn);
+  });
+  const card=document.getElementById('question-card');
+  card.style.animation='none';
+  card.offsetHeight;
+  card.style.animation='';
+}
+
+function _select(btn,chosenText,q){
+  document.querySelectorAll('.option-btn').forEach(b=>{b.disabled=true;});
+  btn.classList.add('selected');
+  const ok=(chosenText===_cur);
+  if(ok){nCorrect++;_pip(idx,'correct');}
+  else{nWrong++;_pip(idx,'incorrect');btn.classList.add('marked-wrong');}
+  results.push({q,chosenText,correct:ok});
+  idx++;_sb();
+  const done=(nCorrect>=PASS||nWrong>=FAIL||idx>=SZ);
+  const card=document.getElementById('question-card');
+  if(card){card.style.transition='opacity .25s';card.style.opacity='0.3';}
+  setTimeout(()=>{
+    if(card)card.style.opacity='1';
+    if(done)_end();else _render();
+  },done?750:800);
+}
+
+function _end(){
+  clearInterval(_timerInterval);
+  _elapsedSecs=Math.floor((Date.now()-_startTime)/1000);
+  document.getElementById('quiz-screen').style.display='none';
+  const screen=document.getElementById('results-screen');
+  screen.classList.add('show');
+  const asked=results.length;
+  const passed=nCorrect>=PASS;
+
+  document.getElementById('res-num').textContent=nCorrect;
+  document.getElementById('res-denom').textContent=asked;
+  document.getElementById('res-correct-stat').textContent=nCorrect+' correct answer'+(nCorrect!==1?'s':'');
+  document.getElementById('res-wrong-stat').textContent=nWrong+' incorrect answer'+(nWrong!==1?'s':'');
+  document.getElementById('res-skipped-stat').textContent=
+    (SZ-asked)>0?'Test ended after '+asked+' of '+SZ+' questions':'All '+SZ+' questions answered';
+
+  const meta=document.getElementById('res-meta');
+  if(meta){
+    meta.innerHTML=
+      '<div class="result-meta-item"><div class="m-val">'+_takerName+'</div><div class="m-lbl">Test Taker</div></div>'+
+      '<div class="result-meta-item"><div class="m-val">'+_fmt(_elapsedSecs)+'</div><div class="m-lbl">Time</div></div>';
+  }
+
+  const badge=document.getElementById('res-badge');
+  if(passed){
+    document.getElementById('res-title').textContent='Passed';
+    badge.textContent='✓ Constitution Certified';
+    badge.className='result-badge badge-pass';
+    document.getElementById('res-msg').textContent=
+      _takerName+' answered '+nCorrect+' of '+asked+' questions correctly. Completed in '+_fmt(_elapsedSecs)+'. You know the supreme law of the land.';
+  }else{
+    document.getElementById('res-title').textContent='Failed';
+    badge.textContent='✗ Below Standard';
+    badge.className='result-badge badge-fail';
+    document.getElementById('res-msg').textContent=
+      _takerName+' answered '+nCorrect+' correctly and '+nWrong+' incorrectly. '+PASS+' correct required to pass. Read the Constitution and try again.';
+  }
+
+  const wrong=results.filter(r=>!r.correct);
+  const rs=document.getElementById('review-section');
+  const rl=document.getElementById('review-list');
+  if(wrong.length===0){rs.style.display='none';}
+  else{
+    rs.style.display='block';
+    rl.innerHTML='';
+    wrong.forEach(r=>{
+      const item=document.createElement('div');
+      item.className='review-item';
+      const srcEl=document.createElement('div');
+      srcEl.className='review-src';
+      srcEl.textContent=r.q.src;
+      const qEl=document.createElement('div');
+      qEl.className='review-q';
+      qEl.textContent=r.q.q;
+      const aEl=document.createElement('div');
+      aEl.className='review-chosen';
+      aEl.textContent=r.chosenText||'(no answer)';
+      item.appendChild(srcEl);
+      item.appendChild(qEl);
+      item.appendChild(aEl);
+      rl.appendChild(item);
+    });
+  }
+  screen.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function retakeQuiz(){
+  document.getElementById('results-screen').classList.remove('show');
+  startQuiz();
+}
+
+window.startQuiz=startQuiz;
+window.retakeQuiz=retakeQuiz;
+})();
+</script>
+</body>
+</html>
